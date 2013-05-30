@@ -5,32 +5,11 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Delete all records"
-        android:onClick="deleteAllRecords"
-         />
-    
-    <Button
-        android:id="@+id/emailButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="E-mail"
-        android:onClick="email"
-         />
-
-  
-
-            <ListView
-                android:id="@+id/listView1"
-                android:layout_width="match_parent"
-                android:layout_height="fill_parent"
-                android:layout_gravity="fill_vertical" >
-
-            </ListView>
-
-  
+    <ListView
+        android:id="@+id/listView1"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="fill_vertical" >
+    </ListView>
 
 </LinearLayout>
