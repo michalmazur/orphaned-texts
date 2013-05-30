@@ -20,6 +20,7 @@ public class OrphanedTextsActivity extends Activity {
 	String uriString;
 	Uri uri;
 	private String output;
+	ArrayList<Orphan> orphans;
 
     public OrphanedTextsActivity() {
 		super();
@@ -36,15 +37,10 @@ public class OrphanedTextsActivity extends Activity {
         RawSmsReader reader = new RawSmsReader(this.getApplicationContext());
 //        RawSmsReader reader = new RawSmsReader();
         
-        ArrayList<Orphan> orphans = reader.getOrphans();
+        orphans = reader.getOrphans();
         setContentView(R.layout.main);
         output = new CsvConverter().convert(orphans);
-        ListView lv = (ListView)findViewById(R.id.listView1);
-    	ArrayList<String> items = new ArrayList<String>();
-    	for (Orphan o: orphans) {
-    		items.add(o.getAddress() + " on " + o.getDate().toLocaleString() + ":\n" + o.getMessageBody() + "\n");
-    	}
-    	lv.setAdapter(new ArrayAdapter<String>(this, R.layout.lvitem, items));
+        displayOrphanList();
     }
     
     @Override
@@ -66,6 +62,15 @@ public class OrphanedTextsActivity extends Activity {
         }
     }
     
+    public void displayOrphanList() {
+    	ListView lv = (ListView)findViewById(R.id.listView1);
+    	ArrayList<String> items = new ArrayList<String>();
+    	for (Orphan o: orphans) {
+    		items.add(o.getAddress() + " on " + o.getDate().toLocaleString() + ":\n" + o.getMessageBody() + "\n");
+    	}
+    	lv.setAdapter(new ArrayAdapter<String>(this, R.layout.lvitem, items));
+    }    
+    
     public void deleteAll() {
     	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 			@Override
@@ -73,6 +78,7 @@ public class OrphanedTextsActivity extends Activity {
 				switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
 					deleteAllRecords();
+					displayOrphanList();
 					break;
 				}
 			}
@@ -90,7 +96,7 @@ public class OrphanedTextsActivity extends Activity {
     {
         getContentResolver().query(uri, null, null, null, null /* "_id limit 10" */);
         getContentResolver().delete(uri, null, null);
-        // TODO: Refresh the list of messages to show that there are none.
+        orphans.clear();
     }
     
    
