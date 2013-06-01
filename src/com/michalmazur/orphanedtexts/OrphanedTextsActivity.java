@@ -1,6 +1,8 @@
 package com.michalmazur.orphanedtexts;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -13,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.app.AlertDialog.Builder;
 
 public class OrphanedTextsActivity extends Activity {
@@ -35,7 +38,7 @@ public class OrphanedTextsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		RawSmsReader reader = new RawSmsReader(this.getApplicationContext());
-		// RawSmsReader reader = new RawSmsReader();
+//		RawSmsReader reader = new RawSmsReader();
 
 		orphans = reader.getOrphans();
 		setContentView(R.layout.main);
@@ -64,12 +67,18 @@ public class OrphanedTextsActivity extends Activity {
 
 	public void displayOrphanList() {
 		ListView lv = (ListView) findViewById(R.id.listView1);
-		ArrayList<String> items = new ArrayList<String>();
+		List<HashMap<String, String>> items = new ArrayList<HashMap<String, String>>();
 		for (Orphan o : orphans) {
-			items.add(o.getAddress() + " on " + o.getDate().toLocaleString() + ":\n"
-					+ o.getMessageBody() + "\n");
+			HashMap<String, String> map = new HashMap<String, String>();
+			map.put("sender", o.getAddress());
+			map.put("datetime", o.getDate().toLocaleString());
+			map.put("message", o.getMessageBody());
+			items.add(map);
 		}
-		lv.setAdapter(new ArrayAdapter<String>(this, R.layout.lvitem, items));
+		Log.d("COUNT", String.valueOf(items.size()));
+		String[] from = new String[] { "sender", "datetime", "message" };
+		int[] to = new int[] { R.id.sender, R.id.datetime, R.id.message };
+		lv.setAdapter(new SimpleAdapter(this, items, R.layout.lvitem, from, to));
 	}
 
 	public void deleteAll() {
