@@ -7,13 +7,14 @@ import java.util.List;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.app.AlertDialog.Builder;
@@ -38,7 +39,7 @@ public class OrphanedTextsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		RawSmsReader reader = new RawSmsReader(this.getApplicationContext());
-//		RawSmsReader reader = new RawSmsReader();
+		// RawSmsReader reader = new RawSmsReader();
 
 		orphans = reader.getOrphans();
 		setContentView(R.layout.main);
@@ -70,7 +71,7 @@ public class OrphanedTextsActivity extends Activity {
 		List<HashMap<String, String>> items = new ArrayList<HashMap<String, String>>();
 		for (Orphan o : orphans) {
 			HashMap<String, String> map = new HashMap<String, String>();
-			map.put("sender", o.getAddress());
+			map.put("sender", getContactName(o.getAddress()));
 			map.put("datetime", o.getDate().toLocaleString());
 			map.put("message", o.getMessageBody());
 			items.add(map);
@@ -112,5 +113,20 @@ public class OrphanedTextsActivity extends Activity {
 		emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Orphaned Texts");
 		emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, output);
 		startActivity(emailIntent);
+	}
+
+	public String getContactName(String phoneNumber) {
+		Uri lookupUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
+				Uri.encode(phoneNumber));
+		String[] columns = { PhoneLookup.DISPLAY_NAME };
+		String displayName = phoneNumber;
+		Cursor cursor = getContentResolver().query(lookupUri, columns, null, null, null);
+		if (cursor != null) {
+			if (cursor.moveToFirst()) {
+				displayName = cursor.getString(cursor.getColumnIndex(PhoneLookup.DISPLAY_NAME));
+			}
+			cursor.close();
+		}
+		return displayName;
 	}
 }
