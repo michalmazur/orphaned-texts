@@ -59,8 +59,10 @@ public class OrphanedTextsActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.email:
 			email();
+			return true;
 		case R.id.delete_all:
 			deleteAll();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
