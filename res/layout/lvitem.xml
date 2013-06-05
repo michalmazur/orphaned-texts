@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:padding="5px" >
 
     <LinearLayout
         android:id="@+id/linearLayout1"
@@ -15,7 +16,8 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="sender" >
+            android:text="sender"
+            android:textStyle="bold" >
         </TextView>
 
         <TextView
@@ -24,6 +26,7 @@
             android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:gravity="right"
             android:text="datetime" >
         </TextView>
     </LinearLayout>
