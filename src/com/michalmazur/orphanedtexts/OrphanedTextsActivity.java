@@ -17,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.app.AlertDialog.Builder;
 
 public class OrphanedTextsActivity extends Activity {
@@ -79,6 +80,8 @@ public class OrphanedTextsActivity extends Activity {
 			items.add(map);
 		}
 		Log.d("COUNT", String.valueOf(items.size()));
+		((TextView) findViewById(R.id.count)).setText("Total number of orphaned texts: "
+				+ items.size());
 		String[] from = new String[] { "sender", "datetime", "message" };
 		int[] to = new int[] { R.id.sender, R.id.datetime, R.id.message };
 		lv.setAdapter(new SimpleAdapter(this, items, R.layout.lvitem, from, to));
