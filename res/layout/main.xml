@@ -9,7 +9,23 @@
         android:id="@+id/count"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="5px"
         android:text="number of records" />
+
+    <TextView
+        android:id="@+id/database_last_emptied"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5px"
+        android:paddingLeft="5px"
+        android:paddingRight="5px"
+        android:text="database last emptied" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="5px"
+        android:background="@android:color/darker_gray" />
 
     <ListView
         android:id="@+id/listView1"

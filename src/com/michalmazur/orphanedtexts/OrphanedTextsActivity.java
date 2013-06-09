@@ -1,12 +1,14 @@
 package com.michalmazur.orphanedtexts;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +28,8 @@ public class OrphanedTextsActivity extends Activity {
 	Uri uri;
 	private String output;
 	ArrayList<Orphan> orphans;
+	private static final String PREFS_NAME = "preferences";
+	private static final String DATABASE_LAST_EMPTIED = "database_last_emptied";
 
 	public OrphanedTextsActivity() {
 		super();
@@ -82,6 +86,8 @@ public class OrphanedTextsActivity extends Activity {
 		Log.d("COUNT", String.valueOf(items.size()));
 		((TextView) findViewById(R.id.count)).setText("Total number of orphaned texts: "
 				+ items.size());
+		((TextView) findViewById(R.id.database_last_emptied)).setText("Database last emptied: "
+				+ readDatabaseLastEmptiedPreference());
 		String[] from = new String[] { "sender", "datetime", "message" };
 		int[] to = new int[] { R.id.sender, R.id.datetime, R.id.message };
 		lv.setAdapter(new SimpleAdapter(this, items, R.layout.lvitem, from, to));
@@ -110,6 +116,7 @@ public class OrphanedTextsActivity extends Activity {
 		getContentResolver().query(uri, null, null, null, null /* "_id limit 10" */);
 		getContentResolver().delete(uri, null, null);
 		orphans.clear();
+		saveDatabaseLastEmptiedPreference();
 	}
 
 	public void email() {
@@ -133,5 +140,22 @@ public class OrphanedTextsActivity extends Activity {
 			cursor.close();
 		}
 		return displayName;
+	}
+
+	private void saveDatabaseLastEmptiedPreference() {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putLong(DATABASE_LAST_EMPTIED, new Date().getTime());
+		editor.commit();
+	}
+
+	private String readDatabaseLastEmptiedPreference() {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+		long miliseconds = settings.getLong(DATABASE_LAST_EMPTIED, 0);
+		if (miliseconds > 0) {
+			return new Date(miliseconds).toLocaleString();
+		} else {
+			return "never";
+		}
 	}
 }
