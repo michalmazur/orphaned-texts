@@ -113,7 +113,6 @@ public class OrphanedTextsActivity extends Activity {
 	}
 
 	public void deleteAllRecords() {
-		getContentResolver().query(uri, null, null, null, null /* "_id limit 10" */);
 		getContentResolver().delete(uri, null, null);
 		orphans.clear();
 		saveDatabaseLastEmptiedPreference();
