@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -44,7 +46,7 @@ public class OrphanedTextsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		RawSmsReader reader = new RawSmsReader(this.getApplicationContext());
-		// RawSmsReader reader = new RawSmsReader();
+//		reader = new RawSmsReader();
 
 		orphans = reader.getOrphans();
 		setContentView(R.layout.main);
@@ -123,7 +125,25 @@ public class OrphanedTextsActivity extends Activity {
 		emailIntent.setType("plain/text");
 		emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Orphaned Texts");
 		emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, output);
-		startActivity(emailIntent);
+
+		try {
+			startActivity(emailIntent);
+		}
+		catch (ActivityNotFoundException e) {
+			displayAlertDialog("Orphaned texts could not be e-mailed.\nReason: no e-mail app found on device.");
+		}
+	}
+
+	private void displayAlertDialog(String message) {
+		AlertDialog ad = new AlertDialog.Builder(this).create();
+		ad.setMessage(message);
+		ad.setButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+		ad.show();
 	}
 
 	public String getContactName(String phoneNumber) {
