@@ -42,7 +42,11 @@ public class RawSmsReader {
 			newOrphan.setDestinationPort(c.getInt(c.getColumnIndex("destination_port")));
 			newOrphan.setAddress(c.getString(c.getColumnIndex("address")));
 			SmsMessage message = SmsMessage.createFromPdu(this.hexStringToByteArray(c.getString(c.getColumnIndex("pdu"))));
-			newOrphan.setMessageBody(message.getMessageBody()); 
+			try {
+				newOrphan.setMessageBody(message.getMessageBody());
+			} catch (NullPointerException e) {
+				newOrphan.setMessageBody("<cannot read message body>");
+			}
 			orphans.add(newOrphan);
 		}
 
