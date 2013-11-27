@@ -170,9 +170,9 @@ public class OrphanedTextsActivity extends Activity {
 
 	private String readDatabaseLastEmptiedPreference() {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-		long miliseconds = settings.getLong(DATABASE_LAST_EMPTIED, 0);
-		if (miliseconds > 0) {
-			return new Date(miliseconds).toLocaleString();
+		long milliseconds = settings.getLong(DATABASE_LAST_EMPTIED, 0);
+		if (milliseconds > 0) {
+			return new Date(milliseconds).toLocaleString();
 		} else {
 			return "never";
 		}
