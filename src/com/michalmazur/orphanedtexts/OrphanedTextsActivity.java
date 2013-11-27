@@ -12,7 +12,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
@@ -32,6 +34,7 @@ public class OrphanedTextsActivity extends Activity {
 	ArrayList<Orphan> orphans;
 	private static final String PREFS_NAME = "preferences";
 	private static final String DATABASE_LAST_EMPTIED = "database_last_emptied";
+	private boolean isMenuEnabled = true;
 
 	public OrphanedTextsActivity() {
 		super();
@@ -48,10 +51,23 @@ public class OrphanedTextsActivity extends Activity {
 		RawSmsReader reader = new RawSmsReader(this.getApplicationContext());
 //		reader = new RawSmsReader();
 
-		orphans = reader.getOrphans();
-		setContentView(R.layout.main);
-		output = new CsvConverter().convert(orphans);
-		displayOrphanList();
+		try {
+			orphans = reader.getOrphans();
+			setContentView(R.layout.main);
+			output = new CsvConverter().convert(orphans);
+			displayOrphanList();
+		} catch (SQLiteException e) {
+			isMenuEnabled = false;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+				invalidateOptionsMenu();
+			}
+			displayAlertDialog("Error: " + e.getMessage() + "\n\nPlease restart the app and file an issue on GitHub if the problem persists.");
+		}
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu m) {
+		return isMenuEnabled;
 	}
 
 	@Override
