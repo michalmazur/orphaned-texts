@@ -41,10 +41,12 @@ public class RawSmsReader {
 			newOrphan.setSequence(c.getInt(c.getColumnIndex("sequence")));
 			newOrphan.setDestinationPort(c.getInt(c.getColumnIndex("destination_port")));
 			newOrphan.setAddress(c.getString(c.getColumnIndex("address")));
-			SmsMessage message = SmsMessage.createFromPdu(this.hexStringToByteArray(c.getString(c.getColumnIndex("pdu"))));
 			try {
+				SmsMessage message = SmsMessage.createFromPdu(this.hexStringToByteArray(c.getString(c.getColumnIndex("pdu"))));
 				newOrphan.setMessageBody(message.getMessageBody());
 			} catch (NullPointerException e) {
+				newOrphan.setMessageBody("<cannot read message body>");
+			} catch (StringIndexOutOfBoundsException e) {
 				newOrphan.setMessageBody("<cannot read message body>");
 			}
 			orphans.add(newOrphan);
