@@ -25,9 +25,11 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.app.AlertDialog.Builder;
+import android.widget.Toast;
 
 public class OrphanedTextsActivity extends Activity {
 
+	public final boolean DEBUG = false;
 	String uriString;
 	Uri uri;
 	private String output;
@@ -48,11 +50,8 @@ public class OrphanedTextsActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		RawSmsReader reader = new RawSmsReader(this.getApplicationContext());
-//		reader = new RawSmsReader();
-
 		try {
-			orphans = reader.getOrphans();
+			orphans = getSmsReader().getOrphans();
 			setContentView(R.layout.main);
 			output = new CsvConverter().convert(orphans);
 			displayOrphanList();
@@ -102,6 +101,7 @@ public class OrphanedTextsActivity extends Activity {
 			items.add(map);
 		}
 		Log.d("COUNT", String.valueOf(items.size()));
+
 		((TextView) findViewById(R.id.count)).setText("Total number of orphaned texts: "
 				+ items.size());
 		((TextView) findViewById(R.id.database_last_emptied)).setText("Database last emptied: "
@@ -111,7 +111,16 @@ public class OrphanedTextsActivity extends Activity {
 		lv.setAdapter(new SimpleAdapter(this, items, R.layout.lvitem, from, to));
 	}
 
+	public RawSmsReader getSmsReader() {
+		if (DEBUG) {
+			return new RawSmsReader();
+		} else {
+			return new RawSmsReader(this.getApplicationContext());
+		}
+	}
+
 	public void deleteAll() {
+
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
@@ -131,8 +140,9 @@ public class OrphanedTextsActivity extends Activity {
 	}
 
 	public void deleteAllRecords() {
-		getContentResolver().delete(uri, null, null);
-		orphans.clear();
+		int deletedRecords = getContentResolver().delete(uri, null, null);
+		Toast.makeText(this, String.valueOf(deletedRecords) + " orphaned texts deleted", Toast.LENGTH_SHORT).show();
+		orphans = getSmsReader().getOrphans();
 		saveDatabaseLastEmptiedPreference();
 	}
 
