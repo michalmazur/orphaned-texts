@@ -50,6 +50,8 @@ public class OrphanedTextsActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        announceKitKatSupport();
+
         try {
             orphans = getSmsReader().getOrphans();
             setContentView(R.layout.main);
@@ -61,6 +63,26 @@ public class OrphanedTextsActivity extends Activity {
                 invalidateOptionsMenu();
             }
             displayAlertDialog("Error: " + e.getMessage() + "\n\nPlease restart the app and file an issue on GitHub if the problem persists.");
+        }
+    }
+
+    public void announceKitKatSupport() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+
+            AlertDialog ad = new Builder(this).create();
+            ad.setMessage(getString(R.string.kitkat_announcement));
+            ad.setButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.kitkat_market_uri))));
+                    } catch (ActivityNotFoundException e) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.kitkat_web_uri))));
+                    }
+                }
+            });
+            ad.show();
         }
     }
 

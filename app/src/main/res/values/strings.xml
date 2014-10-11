@@ -2,5 +2,8 @@
 <resources>
 
     <string name="app_name">Orphaned Texts</string>
+    <string name="kitkat_market_uri">market://details?id=com.michalmazur.orphanedtexts.kitkat</string>
+    <string name="kitkat_web_uri">http://play.google.com/store/apps/details?id=com.michalmazur.orphanedtexts.kitkat</string>
+    <string name="kitkat_announcement">This version of Orphaned Texts does not support Android 4.4 KitKat. You can download Orphaned Texts for KitKat (Beta) from Play Store.</string>
 
 </resources>
