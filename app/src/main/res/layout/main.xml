@@ -1,37 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/linearLayout1"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/count"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="5px"
-        android:text="number of records" />
+        android:padding="5dp"
+        android:textColor="@color/white"
+        android:textStyle="italic" />
 
     <TextView
         android:id="@+id/database_last_emptied"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="5px"
-        android:paddingLeft="5px"
-        android:paddingRight="5px"
-        android:text="database last emptied" />
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="5dp"
+        android:textColor="@color/white"
+        android:textStyle="italic" />
 
     <View
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginBottom="5px"
-        android:background="@android:color/darker_gray" />
+        android:layout_marginBottom="5dp"
+        android:background="?attr/colorPrimary" />
 
     <ListView
         android:id="@+id/listView1"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_gravity="fill_vertical" >
-    </ListView>
+        android:layout_height="wrap_content"
+        android:layout_gravity="fill_vertical"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="30dp"
+        android:divider="@color/secondary_700"
+        android:dividerHeight="20dp"
+        android:stackFromBottom="true"
+        android:transcriptMode="alwaysScroll" />
 
 </LinearLayout>

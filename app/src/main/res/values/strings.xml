@@ -1,9 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Orphaned Texts</string>
-    <string name="kitkat_market_uri">market://details?id=com.michalmazur.orphanedtexts.kitkat</string>
-    <string name="kitkat_web_uri">http://play.google.com/store/apps/details?id=com.michalmazur.orphanedtexts.kitkat</string>
-    <string name="kitkat_announcement">This version of Orphaned Texts does not support Android 4.4 KitKat. You can download Orphaned Texts for KitKat (Beta) from Play Store.</string>
+    <string name="authorities">com.michalmazur.orphanedtexts</string>
 
+    <string name="permission_required">Permission required</string>
+    <string name="permission_description">App needs to be able to read SMS and Contacts in order to display orphaned texts</string>
+    <string name="permission_description_sms">App needs to be able to read SMS in order to display orphaned texts</string>
+    <string name="permission_description_contacts">App needs to be able to access Contacts in order to display orphaned texts</string>
+    <string name="allow">Allow</string>
+    <string name="deny">Deny</string>
+    <string name="ok">OK</string>
+    <string name="total_number">Total number of orphaned texts: %1$d</string>
+    <string name="last_emptied">Database last emptied: %1$s</string>
+    <string name="export">Export</string>
+    <string name="delete_all">Delete All</string>
+    <string name="refresh">Refresh</string>
+    <string name="logo">logo</string>
 </resources>

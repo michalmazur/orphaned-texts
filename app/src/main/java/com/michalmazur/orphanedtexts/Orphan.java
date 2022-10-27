@@ -1,5 +1,7 @@
 package com.michalmazur.orphanedtexts;
 
+import android.database.Cursor;
+
 import java.util.Date;
 
 public class Orphan {
@@ -9,8 +11,12 @@ public class Orphan {
     private int sequence;
     private int destinationPort;
     private String address;
+    private String contactName;
     private String messageBody;
     private Date date;
+
+    public Orphan() {
+    }
 
     public int getId() {
         return id;
@@ -60,6 +66,14 @@ public class Orphan {
         this.address = address;
     }
 
+    public String getContactName() {
+        return contactName == null ? "" : contactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
+    }
+
     public String getMessageBody() {
         return messageBody;
     }
@@ -74,6 +88,48 @@ public class Orphan {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public void setId(Cursor c, int index) {
+        if (index >= 0) {
+            this.id = c.getInt(index);
+        }
+    }
+
+    public void setDate(Cursor c, int index) {
+        if (index >= 0) {
+            this.date = new Date(c.getLong(index));
+        }
+    }
+
+    public void setReferenceNumber(Cursor c, int index) {
+        if (index >= 0) {
+            this.referenceNumber = c.getInt(index);
+        }
+    }
+
+    public void setCount(Cursor c, int index) {
+        if (index >= 0) {
+            this.count = c.getInt(index);
+        }
+    }
+
+    public void setSequence(Cursor c, int index) {
+        if (index >= 0) {
+            this.sequence = c.getInt(index);
+        }
+    }
+
+    public void setDestinationPort(Cursor c, int index) {
+        if (index >= 0) {
+            this.destinationPort = c.getInt(index);
+        }
+    }
+
+    public void setAddress(Cursor c, int index) {
+        if (index >= 0) {
+            this.address = c.getString(index);
+        }
     }
 
 }

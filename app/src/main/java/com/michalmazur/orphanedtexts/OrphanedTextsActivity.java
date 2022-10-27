@@ -1,22 +1,14 @@
 package com.michalmazur.orphanedtexts;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,75 +16,59 @@ import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.app.AlertDialog.Builder;
 import android.widget.Toast;
 
-public class OrphanedTextsActivity extends Activity {
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
+public class OrphanedTextsActivity extends AppCompatActivity {
 
     public final boolean DEBUG = false;
-    String uriString;
-    Uri uri;
-    private String output;
-    ArrayList<Orphan> orphans;
+    Uri uri = Uri.parse("content://sms/raw");
+    List<Orphan> orphans;
     private static final String PREFS_NAME = "preferences";
     private static final String DATABASE_LAST_EMPTIED = "database_last_emptied";
-    private boolean isMenuEnabled = true;
 
-    public OrphanedTextsActivity() {
-        super();
-
-        uriString = "content://sms/raw";
-        uri = Uri.parse(uriString);
-        output = "";
+    private void getMessages() {
+        try {
+            orphans = getSmsReader().getOrphans(getContentResolver());
+            displayOrphanList();
+        } catch (SQLiteException e) {
+            invalidateOptionsMenu();
+        } catch (Exception e) {
+            Log.e("Messages", "Error", e);
+        }
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        announceKitKatSupport();
-
-        try {
-            orphans = getSmsReader().getOrphans();
-            setContentView(R.layout.main);
-            output = new CsvConverter().convert(orphans);
-            displayOrphanList();
-        } catch (SQLiteException e) {
-            isMenuEnabled = false;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                invalidateOptionsMenu();
-            }
-            displayAlertDialog("Error: " + e.getMessage() + "\n\nPlease restart the app and file an issue on GitHub if the problem persists.");
+        setContentView(R.layout.main);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("");
+            getSupportActionBar().setHomeAsUpIndicator(R.mipmap.ic_launcher_foreground);
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-    }
-
-    public void announceKitKatSupport() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-
-            AlertDialog ad = new Builder(this).create();
-            ad.setMessage(getString(R.string.kitkat_announcement));
-            ad.setButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    try {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.kitkat_market_uri))));
-                    } catch (ActivityNotFoundException e) {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.kitkat_web_uri))));
-                    }
-                }
-            });
-            ad.show();
-        }
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu m) {
-        return isMenuEnabled;
+        getMessages();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.orphaned_texts, menu);
         return true;
@@ -100,37 +76,51 @@ public class OrphanedTextsActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.email:
-                email();
-                return true;
-            case R.id.delete_all:
-                deleteAll();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.export) {
+            export();
+            return true;
+        } else if (item.getItemId() == R.id.delete_all) {
+            deleteAll();
+            return true;
+        } else if (item.getItemId() == R.id.refresh) {
+            refresh();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
+    }
+
+    public String convertDateToString(Date date) {
+        return new SimpleDateFormat("MMMM dd yyyy HH:mm:ss", Locale.ENGLISH).format(date.getTime());
     }
 
     public void displayOrphanList() {
         ListView lv = (ListView) findViewById(R.id.listView1);
-        List<HashMap<String, String>> items = new ArrayList<HashMap<String, String>>();
+        List<HashMap<String, String>> items = new ArrayList<>();
         for (Orphan o : orphans) {
-            HashMap<String, String> map = new HashMap<String, String>();
-            map.put("sender", getContactName(o.getAddress()));
-            map.put("datetime", o.getDate().toLocaleString());
+            HashMap<String, String> map = new HashMap<>();
+            map.put("sender", o.getContactName());
+            map.put("datetime", convertDateToString(o.getDate()));
             map.put("message", o.getMessageBody());
             items.add(map);
         }
         Log.d("COUNT", String.valueOf(items.size()));
 
-        ((TextView) findViewById(R.id.count)).setText("Total number of orphaned texts: "
-                + items.size());
-        ((TextView) findViewById(R.id.database_last_emptied)).setText("Database last emptied: "
-                + readDatabaseLastEmptiedPreference());
-        String[] from = new String[] { "sender", "datetime", "message" };
-        int[] to = new int[] { R.id.sender, R.id.datetime, R.id.message };
+        ((TextView) findViewById(R.id.count)).setText(getString(R.string.total_number, items.size()));
+        ((TextView) findViewById(R.id.database_last_emptied)).setText(getString(R.string.last_emptied, readDatabaseLastEmptiedPreference()));
+        String[] from = new String[]{"sender", "datetime", "message"};
+        int[] to = new int[]{R.id.sender, R.id.datetime, R.id.message};
         lv.setAdapter(new SimpleAdapter(this, items, R.layout.lvitem, from, to));
+
+        lv.setOnItemLongClickListener((adapterView, view, i, l) -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("Orphaned Texts", items.get(i).get("message"));
+            clipboard.setPrimaryClip(clip);
+
+            Toast.makeText(this, "Message copied", Toast.LENGTH_SHORT).show();
+            Log.i("ListView", "Long click copy");
+            return false;
+        });
     }
 
     public RawSmsReader getSmsReader() {
@@ -142,85 +132,72 @@ public class OrphanedTextsActivity extends Activity {
     }
 
     public void deleteAll() {
-
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case DialogInterface.BUTTON_POSITIVE:
-                        deleteAllRecords();
-                        displayOrphanList();
-                        break;
-                }
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            if (which == DialogInterface.BUTTON_POSITIVE) {
+                deleteAllRecords();
+                displayOrphanList();
             }
         };
 
-        Builder builder = new Builder(this);
-        builder.setMessage("Are you sure you want to delete all orphaned messages?")
+        new MaterialAlertDialogBuilder(this, R.style.AlertDialogTheme)
+                .setTitle("Warning")
+                .setIcon(R.drawable.ic_baseline_warning_amber_24)
+                .setMessage("Are you sure you want to delete all orphaned messages?")
                 .setPositiveButton("Yes", dialogClickListener)
                 .setNegativeButton("No", dialogClickListener).show();
     }
 
     public void deleteAllRecords() {
         int deletedRecords = getContentResolver().delete(uri, null, null);
-        Toast.makeText(this, String.valueOf(deletedRecords) + " orphaned texts deleted", Toast.LENGTH_SHORT).show();
-        orphans = getSmsReader().getOrphans();
+        Toast.makeText(this, deletedRecords + " orphaned texts deleted", Toast.LENGTH_SHORT).show();
+        orphans = getSmsReader().getOrphans(getContentResolver());
         saveDatabaseLastEmptiedPreference();
     }
 
-    public void email() {
-        Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-        emailIntent.setType("plain/text");
-        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Orphaned Texts");
-        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, output);
+    public void refresh() {
+        getMessages();
+        Toast.makeText(this, "Refreshed", Toast.LENGTH_SHORT).show();
+    }
 
+    public void export() {
         try {
-            startActivity(emailIntent);
-        }
-        catch (ActivityNotFoundException e) {
-            displayAlertDialog("Orphaned texts could not be e-mailed.\nReason: no e-mail app found on device.");
-        }
-    }
+            File file = new File(getCacheDir(), "Orphaned Texts " + convertDateToString(new Date()) + ".csv");
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(new CsvConverter().convert(orphans));
+            bw.close();
+            fw.close();
 
-    private void displayAlertDialog(String message) {
-        AlertDialog ad = new AlertDialog.Builder(this).create();
-        ad.setMessage(message);
-        ad.setButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        ad.show();
-    }
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.setType("text/csv");
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Orphaned Texts");
+            Uri uri = FileProvider.getUriForFile(this, getString(R.string.authorities), file);
+            sendIntent.putExtra(Intent.EXTRA_STREAM, uri);
 
-    public String getContactName(String phoneNumber) {
-        Uri lookupUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
-                Uri.encode(phoneNumber));
-        String[] columns = { PhoneLookup.DISPLAY_NAME };
-        String displayName = phoneNumber;
-        Cursor cursor = getContentResolver().query(lookupUri, columns, null, null, null);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                displayName = cursor.getString(cursor.getColumnIndex(PhoneLookup.DISPLAY_NAME));
-            }
-            cursor.close();
+            startActivity(sendIntent);
+        } catch (ActivityNotFoundException e) {
+            new MaterialAlertDialogBuilder(getBaseContext())
+                    .setMessage("Orphaned texts could not be exported, no supported apps found!")
+                    .setPositiveButton(R.string.ok, null)
+                    .create()
+                    .show();
+        } catch (Exception e) {
+            Log.e("EXPORT", "Failed", e);
         }
-        return displayName;
     }
 
     private void saveDatabaseLastEmptiedPreference() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putLong(DATABASE_LAST_EMPTIED, new Date().getTime());
-        editor.commit();
+        editor.apply();
     }
 
     private String readDatabaseLastEmptiedPreference() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         long milliseconds = settings.getLong(DATABASE_LAST_EMPTIED, 0);
         if (milliseconds > 0) {
-            return new Date(milliseconds).toLocaleString();
+            return convertDateToString(new Date(milliseconds));
         } else {
             return "never";
         }
